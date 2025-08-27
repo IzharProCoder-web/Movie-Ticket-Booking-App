@@ -19,4 +19,4 @@ app.use(clerkMiddleware())
 app.get("/", (req, res) => res.send("Api is Working "));
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
-app.listen(PORT, () => console.log(`Server Is Running On Port ${PORT}`));
+app.listen(PORT, () => console.log(`Server Is Running On Port http://localhost:${PORT}/`));
