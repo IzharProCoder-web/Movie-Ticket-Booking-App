@@ -1,3 +1,4 @@
+import { inngest } from "../inggest/index.js";
 import Booking from "../models/Bookings.js";
 import Show from "../models/Show.js";
 import Stripe from "stripe";
@@ -47,33 +48,42 @@ export const createBooking = async (req, res) => {
     await showData.save();
 
     //stripe
-    const stripeInstance =  new Stripe(process.env.STRIPE_SECRET_KEY);
-    const line_item = [{
-      price_data: {
-        currency: "inr",
-        product_data: {
-          name: showData.movie.title,
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const line_item = [
+      {
+        price_data: {
+          currency: "inr",
+          product_data: {
+            name: showData.movie.title,
+          },
+          unit_amount: Math.floor(booking.amount) * 100,
         },
-        unit_amount: Math.floor(booking.amount) * 100,
+        quantity: 1,
       },
-      quantity: 1,
-    }]
+    ];
 
     const session = await stripeInstance.checkout.sessions.create({
       success_url: `${origin}/loading/my-bookings`,
-      cancel_url : `${origin}/my-bookings`,
-      line_items : line_item,
-      mode : 'payment',
-      metadata : {
-        bookingId : booking._id.toString(),
+      cancel_url: `${origin}/my-bookings`,
+      line_items: line_item,
+      mode: "payment",
+      metadata: {
+        bookingId: booking._id.toString(),
       },
-      expires_at : Math.floor(Date.now() / 1000) + 30 * 60, 
-    })
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+    });
 
     booking.paymentLink = session.url;
     await booking.save();
-    
-    res.json({ success: true, url : session.url });
+
+    await inngest.send({
+      name: "booking.created",
+      data: {
+        bookingId: booking._id.toString(),
+      },
+    });
+
+    res.json({ success: true, url: session.url });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }

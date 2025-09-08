@@ -7,7 +7,7 @@ export const stripeWebhook = async (request, response) => {
   let event;
   try {
     event = stripeInstance.webhooks.constructEvent(
-      request.rawBody,
+      request.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -17,22 +17,18 @@ export const stripeWebhook = async (request, response) => {
 
   try {
     switch (event.type) {
-      case "checkout_intent.succeeded": {
-        const paymentIntent = event.data.object;
-        const sessionList = await stripeInstance.checkout.sessions.list({
-          payment_intent: paymentIntent.id,
-        });
-        const session = sessionList.data[0];
+      case "checkout.session.completed": {
+        const session = event.data.object;
         const { bookingId } = session.metadata;
         await Booking.findByIdAndUpdate(bookingId, {
           isPaid: true,
           paymentLink: "",
         });
-        break ;
+        break;
       }
 
-      default: 
-      console.log("Unhandled event type:", event.type);
+      default:
+        console.log("Unhandled event type:", event.type);
     }
     response.json({ received: true });
   } catch (error) {

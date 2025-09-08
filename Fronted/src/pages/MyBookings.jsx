@@ -5,40 +5,36 @@ import BlurCircle from "../component/BlurCircle";
 import timeFormat from "../lib/timeFormat";
 import { dateFormat } from "../lib/dateFormat";
 import { useAppContext } from "../context/AppContext";
+import { Link } from "react-router-dom";
 
 const MyBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY;
 
   const [booking, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const {
-    axios,
-    getToken,
-    user,
-    image_base_url,
-  } = useAppContext();
+
+  const { axios, getToken, user, image_base_url } = useAppContext();
 
   const getMyBookings = async () => {
     try {
-      const {data} = await axios.get("/api/user/bookings", {
+      const { data } = await axios.get("/api/user/bookings", {
         headers: {
           Authorization: `Bearer ${await getToken()}`,
         },
-      })
+      });
 
-      if(data.success){
+      if (data.success) {
         setBookings(data.bookings);
       }
     } catch (error) {
-      console.log(error)
-    }finally{
+      console.log(error);
+    } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if(user) {
+    if (user) {
       getMyBookings();
     }
   }, [user]);
@@ -78,11 +74,14 @@ const MyBookings = () => {
                 {currency} {item.amount}
               </p>
               {!item.isPaid && (
-                <button
+                <a
+                  href={item.paymentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer"
                 >
                   Pay Now
-                </button>
+                </a>
               )}
             </div>
             <div className="text-sm">
@@ -94,7 +93,6 @@ const MyBookings = () => {
                 <span className="text-gray-400">Seat Number:</span>{" "}
                 {item.bookedSeats.join(", ")}
               </p>{" "}
-        
             </div>
           </div>
         </div>

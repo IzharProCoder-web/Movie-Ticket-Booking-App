@@ -10,6 +10,7 @@ import bookingRouter from "./Routes/bookingRoute.js";
 import adminRouter from "./Routes/adminRoute.js";
 import userRouter from "./Routes/userRoute.js";
 import { stripeWebhook } from "./controller/stripeWebhooks.js";
+import bodyParser from "body-parser";
 
 const app = express();
 
@@ -17,11 +18,19 @@ const PORT = process.env.PORT;
 
 await connectDB();
 
-app.use('/api/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
+// This must be before any bodyParser.json() middleware!
+app.post(
+  "/api/stripe/webhook",
+  bodyParser.raw({ type: "application/json" }),
+  stripeWebhook
+);
 
 app.use(express.json());
 app.use(cors());
 app.use(clerkMiddleware());
+app.use(bodyParser.json());
+
+
 
 app.get("/", (req, res) => res.send("Api is Working "));
 app.use("/api/inngest", serve({ client: inngest, functions }));

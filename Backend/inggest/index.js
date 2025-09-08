@@ -1,5 +1,7 @@
 import { Inngest } from "inngest";
-import User from '../models/User.js'
+import User from "../models/User.js";
+import Booking from "../models/Bookings.js";
+import Show from "../models/Show.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "Movie-Ticket-Booking-App" });
@@ -9,12 +11,13 @@ const syncUsercreation = inngest.createFunction(
   { id: "sync-user-from-clerk" },
   { event: "clerk/user.created" },
   async ({ event }) => {
-    const { id, first_name, last_name, email_addresses, image_url } = event.data;
+    const { id, first_name, last_name, email_addresses, image_url } =
+      event.data;
 
     const userData = {
       _id: id,
       email: email_addresses[0].email_address,
-      name: first_name + ' ' +last_name,
+      name: first_name + " " + last_name,
       image: image_url,
     };
     await User.create(userData);
@@ -39,12 +42,40 @@ const syncUserUpdation = inngest.createFunction(
     const userData = {
       _id: id,
       email: email_addresses[0].email_address,
-      name: first_name + ' ' +last_name,
+      name: first_name + " " + last_name,
       image: image_url,
     };
     await User.findByIdAndUpdate(id, userData);
   }
 );
 
+const releaseSeatsAndDeleteBooking = inngest.createFunction(
+  { id: "release-seats-and-delete-booking" },
+  { event: "app/checkpayment" },
+  async ({ event, step }) => {
+    const tenMinutesLater = new Date(new Date().getTime() + 10 * 60000);
+    await step.sleep("wait 10 minutes", tenMinutesLater);
 
-export const functions = [syncUsercreation, syncUserDeletion, syncUserUpdation];
+    await step.run("Check payment status", async () => {
+      const bookingId = event.data.bookingId;
+      const booking = await Booking.findById(bookingId);
+
+      if (!booking.isPaid) {
+        const show = await Show.findById(booking.show);
+        booking.bookedSeats.forEach((seat) => {
+          delete show.occupiedSeats.delete[seat];
+        });
+        show.markModified("occupiedSeats");
+        await show.save();
+        await Booking.findByIdAndDelete(bookingId);
+      }
+    });
+  }
+);
+
+export const functions = [
+  syncUsercreation,
+  syncUserDeletion,
+  syncUserUpdation,
+  releaseSeatsAndDeleteBooking,
+];
