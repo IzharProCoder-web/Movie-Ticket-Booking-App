@@ -1,20 +1,33 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { dummyShowsData } from "../../assets/assets";
 import Loading from "../../component/Loading";
-import { CheckIcon, DeleteIcon, StarIcon } from "lucide-react";
+import { CheckIcon, DeleteIcon, ShoppingBag, StarIcon } from "lucide-react";
 import Title from "../../component/admin/Title";
 import { kConverter } from "../../lib/kConverter";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const AddShow = () => {
+  const { axios, getToken, user, image_base_url } = useAppContext();
   const currency = import.meta.env.VITE_CURRENCY;
   const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [dateTimeSelection, setDateTimeSelection] = useState({});
   const [dateTimeInput, setDateTimeInput] = useState("");
   const [showPrice, setShowPrice] = useState("");
+  const [addingShow, setAddingShow] = useState(false);
 
   const fetchNowPlayingMovies = async () => {
-    setNowPlayingMovies(dummyShowsData);
+    try {
+      const { data } = await axios.get("/api/show/now-playing", {
+        headers: { Authorization: `Bearer ${await getToken()}` },
+      });
+      if (data.success) {
+        setNowPlayingMovies(data.movies);
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   const handleDateTimeAdd = () => {
@@ -44,9 +57,51 @@ const AddShow = () => {
     });
   };
 
+  const handleSubmit = async () => {
+    try {
+      setAddingShow(true);
+      if (
+        !selectedMovie ||
+        !showPrice ||
+        Object.keys(dateTimeSelection).length === 0
+      ) {
+        return toast("Missing required fields");
+      }
+
+      // const showInput = Object.keys(dateTimeSelection).map(([date,time])=> ({date,time}))
+      const showsInput = Object.entries(dateTimeSelection).flatMap(
+        ([date, time]) => time.map((time) => ({ date, time }))
+      );
+
+      const payload = {
+        movieId: selectedMovie,
+        showsInput,
+        showPrice: Number(showPrice),
+      };
+
+      const { data } = await axios.post("/api/show/add", payload, {
+        headers: { Authorization: `Bearer ${await getToken()}` },
+      });
+      if (data.success) {
+        toast.success('Show Added successfully');
+        setSelectedMovie(null);
+        setShowPrice("");
+        setDateTimeSelection({});
+        setDateTimeInput("");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message || "Failed to add show");
+    } finally {
+      setAddingShow(false);
+    }
+  };
+
   useEffect(() => {
-    fetchNowPlayingMovies();
-  }, []);
+    if (user) {
+      fetchNowPlayingMovies();
+    }
+  }, [user]);
   return nowPlayingMovies.length > 0 ? (
     <>
       <Title text1="Add" text2="Shows" />
@@ -63,7 +118,7 @@ const AddShow = () => {
             >
               <div className="relative rounded-lg overflow-hidden">
                 <img
-                  src={movie.poster_path}
+                  src={image_base_url + movie.poster_path}
                   alt=""
                   className="w-full object-cover brightness-90"
                 />
@@ -127,7 +182,7 @@ justify-center bg-primary h-6 w-6 rounded"
           <button
             onClick={handleDateTimeAdd}
             className="bg-primary/80
-text-white px-3 py-2 text-sm rounded-1g hover:bg-primary
+text-white px-3 py-2 text-sm rounded-lg hover:bg-primary
 cursor-pointer"
           >
             Add Time
@@ -165,7 +220,11 @@ cursor-pointer"
           </ul>
         </div>
       )}
-      <button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer">
+      <button
+        onClick={handleSubmit}
+        disabled={addingShow}
+        className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer"
+      >
         Add Show
       </button>
     </>

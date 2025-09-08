@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   ChartLineIcon,
   CircleDollarSignIcon,
@@ -6,14 +7,17 @@ import {
   UsersIcon,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { dummyDashboardData } from "../../assets/assets";
 import Loading from "../../component/Loading";
 import Title from "../../component/admin/Title";
 import BlurCircle from "../../component/BlurCircle";
 import { dateFormat } from "../../lib/dateFormat";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
+
 
 const Dashboard = () => {
   const currency = import.meta.env.VITE_CURRENCY;
+  const {axios, image_base_url, user,getToken} = useAppContext()
 
   const [dashboardData, setDashboardData] = useState({
     totalBookings: 0,
@@ -50,13 +54,25 @@ const Dashboard = () => {
   ];
 
   const fetchDashboardData = async () => {
-    setDashboardData(dummyDashboardData);
-
-    setLoading(false);
+   try {
+    const {data} = await axios.get('/api/admin/dashboard',{
+      headers: { Authorization: `Bearer ${await getToken()}` },
+    })
+    if(data.success){
+      setDashboardData(data.dashboardData)
+      setLoading(false)
+    }else {
+      toast.error(data.message)
+    }
+   } catch (error) {
+    console.log(error)
+   }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    if(user){
+      fetchDashboardData()
+    }
   }, []);
   return !loading ? (
     <>
@@ -89,7 +105,7 @@ const Dashboard = () => {
             className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20  hover:-translate-y-1 transition duration-300"
           >
             <img
-              src={show.movie.poster_path}
+              src={image_base_url + show.movie.poster_path}
               className="h-60 w-full object-cover "
             />
             <p className="font-medium p-2 truncate">{show.movie.title}</p>
@@ -104,7 +120,7 @@ const Dashboard = () => {
               </p>
             </div>
             <p className="px-2 pt-2 text-sm text-gray-500">
-              {dateFormat(show.showDaeTime)}
+              {dateFormat(show.showDateTime)}
             </p>
           </div>
         ))}

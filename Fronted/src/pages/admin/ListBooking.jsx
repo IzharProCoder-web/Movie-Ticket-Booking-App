@@ -1,19 +1,34 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { dummyBookingData } from "../../assets/assets";
 import Loading from "../../component/Loading";
 import Title from "../../component/admin/Title";
 import { dateFormat } from "../../lib/dateFormat";
+import { useAppContext } from "../../context/AppContext";
 
 const ListBooking = () => {
   const currency = import.meta.env.VITE_CURRENCY;
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const {axios, getToken, user} = useAppContext();
+
+
   const getAllBookings = async () => {
-    setBookings(dummyBookingData);
+   try {
+     const {data} = await axios.get('/api/admin/all-bookings', {
+      headers: {
+        Authorization: `Bearer ${await getToken()}`}
+     })
+     setBookings(data.bookings);
+   } catch (error) {
+    console.log(error)
+   }finally{
     setIsLoading(false);
+   }
   };
   useEffect(() => {
-    getAllBookings();
+    if(user){
+      getAllBookings();
+    }
   }, []);
   return !isLoading ? (
     <div>

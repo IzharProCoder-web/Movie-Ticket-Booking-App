@@ -3,6 +3,7 @@ import { assets } from "../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, Search, TicketPlus, XIcon } from "lucide-react";
 import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
+import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
 
@@ -10,6 +11,8 @@ const Navbar = () => {
   const {user} = useUser();
   const {openSignIn} = useClerk()
   const navigate = useNavigate()
+    const { favoriteMovies } = useAppContext();
+  
   return (
     <div className="flex justify-between items-center px-6 md:px-16 lg:px-36 py-5 fixed top-0 left-0 z-50 w-full  ">
       <Link to="/" className="w-[145px] h-[27px]">
@@ -29,7 +32,7 @@ border-gray-300/20 overflow-hidden transition-[width] duration-300 ${isOpen ? "m
         <Link onClick={() => {setIsOpen(!isOpen); scrollTo(0,0)}} to="/movies">Movies</Link>
         <Link onClick={() => {setIsOpen(!isOpen); scrollTo(0,0)}} to="/">Theaters</Link>
         <Link onClick={() => {setIsOpen(!isOpen); scrollTo(0,0)}} to="/">Releases</Link>
-        <Link onClick={() => {setIsOpen(!isOpen); scrollTo(0,0)}} to="/favorite">Favorite </Link>
+        {favoriteMovies.length > 0 && <Link onClick={() => {setIsOpen(!isOpen); scrollTo(0,0)}} to="/favorite">Favorite </Link> }
       </div>
  {/* ...... */}
        <div className="flex justify-center items-center gap-8">
