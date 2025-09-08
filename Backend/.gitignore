@@ -2,4 +2,5 @@
 node_modules
 
 # Environment variables
+echo "Backend/.env" >> .gitignore
 .env
