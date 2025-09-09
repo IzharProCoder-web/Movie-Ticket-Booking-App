@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 import Loading from "../component/Loading";
 import {  ArrowRightIcon, ClockIcon } from "lucide-react";
@@ -173,13 +173,13 @@ const SeatLayout = () => {
             ))}
           </div>
         </div>
-        <button
+        <Link 
           onClick={bookTickets}
           className="flex items-center gap-1 mt-20 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95"
         >
           Proceed to Checked
           <ArrowRightIcon strokeWidth={3} className="w-4 h-4" />
-        </button>
+        </Link>
       </div>
     </div>
   ) : (
