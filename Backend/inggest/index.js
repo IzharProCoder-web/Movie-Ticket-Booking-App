@@ -73,6 +73,8 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
   }
 );
 
+
+
 export const functions = [
   syncUsercreation,
   syncUserDeletion,

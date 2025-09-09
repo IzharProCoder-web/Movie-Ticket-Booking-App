@@ -54,6 +54,7 @@ const SeatLayout = () => {
   };
 
   const bookTickets = async () => {
+  
     try {
       if(!user) return toast("Please login to book tickets")
 
@@ -69,9 +70,13 @@ const SeatLayout = () => {
         })
 
         if(data.success){
-          toast.success(data.message);
+          toast.success("Redirecting to payment gateway");
           window.location.href = data.url
+        }else{
+          toast.error("Some Thing went wrong")
         }
+        
+        
     } catch (error) {
       console.log(error)
     }

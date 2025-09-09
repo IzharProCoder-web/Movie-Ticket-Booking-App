@@ -49,7 +49,7 @@ export const createBooking = async (req, res) => {
 
     //stripe
     const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-    const line_item = [
+    const line_items = [
       {
         price_data: {
           currency: "inr",
@@ -65,7 +65,7 @@ export const createBooking = async (req, res) => {
     const session = await stripeInstance.checkout.sessions.create({
       success_url: `${origin}/loading/my-bookings`,
       cancel_url: `${origin}/my-bookings`,
-      line_items: line_item,
+      line_items: line_items,
       mode: "payment",
       metadata: {
         bookingId: booking._id.toString(),

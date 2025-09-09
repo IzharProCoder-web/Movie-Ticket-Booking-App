@@ -76,8 +76,6 @@ const MyBookings = () => {
               {!item.isPaid && (
                 <a
                   href={item.paymentLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer"
                 >
                   Pay Now

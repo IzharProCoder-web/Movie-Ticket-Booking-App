@@ -12,26 +12,31 @@ export const stripeWebhook = async (request, response) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (error) {
+    console.error("Stripe webhook signature error:", error.message);
     return response.status(400).send(`Webhook Error: ${error.message}`);
   }
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object;
-        const { bookingId } = session.metadata;
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object;
+        const sessionList = await stripeInstance.checkout.sessions.list({
+          payment_intent: paymentIntent.id,
+        })
+        const session = sessionList.data[0];
+        const {bookingId} = session.metadata;
         await Booking.findByIdAndUpdate(bookingId, {
-          isPaid: true,
-          paymentLink: "",
-        });
+          ispaid: true,
+          paymentLink: ""
+        })
         break;
       }
-
       default:
         console.log("Unhandled event type:", event.type);
     }
     response.json({ received: true });
   } catch (error) {
-    console.log(error);
+    console.error("Error in webhook handler:", error);
+    response.status(500).send("Internal Server Error");
   }
 };
