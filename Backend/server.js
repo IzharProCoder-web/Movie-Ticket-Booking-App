@@ -19,9 +19,9 @@ const PORT = process.env.PORT;
 await connectDB();
 
 // This must be before any bodyParser.json() middleware!
-app.post(
-  "/api/stripe/webhook",
-  bodyParser.raw({ type: "application/json" }),
+app.use(
+  "/api/stripe",
+  express.raw({ type: "application/json" }),
   stripeWebhook
 );
 
