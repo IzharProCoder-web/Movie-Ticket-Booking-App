@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 const Hero = () => {
     const navigate = useNavigate()
   return (
-    <div className='bg-[url(".\assets\backgroundImage.png")] bg-cover bg-center  w-full h-screen  px-6 md:px-16 lg:px-36 flex flex-col items-start justify-center gap-2 '>
+    <div className='bg-[url("../assets/backgroundImage.png")] bg-cover bg-center  w-full h-screen  px-6 md:px-16 lg:px-36 flex flex-col items-start justify-center gap-2 '>
 
     <img src={assets.marvelLogo} className='w-[173px] h-[39px]'/>
     <h1 className='text-[64px] font-semibold leading-[117%]'>Guardians<br /> of the Galaxy</h1>
